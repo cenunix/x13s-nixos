@@ -1,6 +1,7 @@
 { config, lib, pkgs, ... }:
 
 let
+
   linux_x13s_pkg = { buildLinux, ... } @ args:
     buildLinux (args // rec {
       version = "6.3.5";
@@ -21,7 +22,9 @@ let
 
   linuxPackages_x13s = pkgs.linuxPackagesFor linux_x13s;
   dtbname = "sc8280xp-lenovo-thinkpad-x13s.dtb";
+
 in {
+  
   imports = [ ./hardware-configuration.nix ];
 
   boot = {
@@ -75,11 +78,17 @@ in {
   services.xserver.enable = true;
   services.xserver.displayManager.sddm.enable = true;
   services.xserver.desktopManager.plasma5.enable = true;
+
+  nixpkgs.overlays = [(  final: prev: {
+        qrtr = prev.callPackage ./qrtr.nix {};
+        pd-mapper = final.callPackage ./pd-mapper.nix {inherit (final) qrtr; };
+      })];
   environment.systemPackages = with pkgs; [
     libqrtr-glib
+    
     (callPackage ./x13s-firmware.nix {})
     (callPackage ./qrtr.nix {})
-    # (callPackage ./pd-mapper.nix {})
+    (callPackage ./pd-mapper.nix {})
     neovim
     nano
     networkmanagerapplet
@@ -87,12 +96,24 @@ in {
     firefox
     armcord
     gh
+    alsa-utils
+    alsa-ucm-conf
+    neofetch
     (vscode-with-extensions.override {
     vscodeExtensions = with vscode-extensions; [
       bbenoist.nix
     ];
     })
   ];
-
+  systemd.packages = [
+    pkgs.qrtr
+    pkgs.pd-mapper
+  ];
+  services.pipewire = {
+  enable = true;
+  alsa.enable = true;
+  # If you want to use JACK applications, uncomment this
+  #jack.enable = true;
+};
   system.stateVersion = "22.05";
 }

@@ -22,7 +22,7 @@
    cp -av my-repo/a690_gmu.bin $out/lib/firmware/qcom
    cp -av my-repo/qcvss8280.mbn $out/lib/firmware/qcom/sc8280xp/LENOVO/21BX
    cp -av my-repo/SC8280XP-LENOVO-X13S-tplg.bin $out/lib/firmware/qcom/sc8280xp
-   cp -av my-repo/hpnv21.8c $out/lib/firmware/qca
+   cp -av my-repo/hpnv21.8c $out/lib/firmware/qca/hpnv21.b8c
    cp -av my-repo/board-2.bin $out/lib/firmware/ath11k/WCN6855/hw2.0
    runHook postInstall
  '';
