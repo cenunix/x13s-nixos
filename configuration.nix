@@ -76,8 +76,8 @@ in {
   nixpkgs.config.allowUnfree = true;
   networking.hostName = "nixos-x13s";
   services.xserver.enable = true;
-  services.xserver.displayManager.sddm.enable = true;
-  services.xserver.desktopManager.plasma5.enable = true;
+  services.xserver.displayManager.gdm.enable = true;
+  services.xserver.desktopManager.gnome.enable = true;
 
   nixpkgs.overlays = [(  final: prev: {
         qrtr = prev.callPackage ./qrtr.nix {};
@@ -86,9 +86,10 @@ in {
   environment.systemPackages = with pkgs; [
     libqrtr-glib
     
-    (callPackage ./x13s-firmware.nix {})
-    (callPackage ./qrtr.nix {})
-    (callPackage ./pd-mapper.nix {})
+    (callPackage ./pkgs/x13s-firmware.nix {})
+    (callPackage ./pkgs/qrtr.nix {})
+    (callPackage ./pkgs/pd-mapper.nix {})
+    (callPackage ./pkgs/alsa-ucm-conf-x13s.nix {})
     neovim
     nano
     networkmanagerapplet
@@ -97,7 +98,6 @@ in {
     armcord
     gh
     alsa-utils
-    alsa-ucm-conf
     neofetch
     (vscode-with-extensions.override {
     vscodeExtensions = with vscode-extensions; [
@@ -109,11 +109,19 @@ in {
     pkgs.qrtr
     pkgs.pd-mapper
   ];
-  services.pipewire = {
-  enable = true;
-  alsa.enable = true;
-  # If you want to use JACK applications, uncomment this
-  #jack.enable = true;
-};
-  system.stateVersion = "22.05";
+  hardware.bluetooth.enable = true;
+  hardware.pulseaudio.enable = false;
+  services = {
+    pipewire = {
+      enable = true;
+      alsa = {
+        enable = true;
+        support32Bit = true;
+      };
+      wireplumber.enable = true;
+      pulse.enable = true;
+      jack.enable = true;
+    };
+  };
+  system.stateVersion = "23.05";
 }
