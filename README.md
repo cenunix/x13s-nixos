@@ -4,7 +4,7 @@ Use mrObtains ubuntu iso https://drive.google.com/drive/folders/1wp1-X318MCI48xC
 
 Connect to wifi, sudo apt update, and install the nix package manager using this command: sh <(curl -L https://nixos.org/nix/install) --daemon
 
-You will need nixos-install-tools package, install it with nix: nix-env -iA nixpkgs.nixos-install-tools
+You will need nixos-install-tools package, however you should first run sudo -i, then install it with nix: nix-env -iA nixpkgs.nixos-install-tools
 
 Partition your drives, and mount them, root partition at /mnt and boot partition at /mnt/boot
 
@@ -12,7 +12,7 @@ nixos-generate-config command should generate a base config file for you at /mnt
 
 You should keep your hardware-configuration.nix as is but everything else should be replaced by the config files in this repo
 
-nixos-install is the command to install nixos once your config files a set up
+nixos-install is the command to install nixos once your config files are set up, run this as root, so make sure you run sudo -i, then when you are logged in as root run nixos-install
 
 YOU WILL NEED TO COPY THE DTB FILE INTO /mnt/boot! this is a crucial step for booting, and until i have a better solution that doesn't require this, make sure you do it, or you will have to boot back into the ubuntu iso and move it before booting, the machine will not boot without this step.
 
