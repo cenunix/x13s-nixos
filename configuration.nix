@@ -29,8 +29,8 @@
     overlays = [
       (final: prev: {
         qrtr = prev.callPackage ./qrtr.nix {};
-        pd-mapper = final.callPackage ./pd-mapper.nix {inherit (final) qrtr;};
-        compressFirmwareXz = lib.id;
+        pd-mapper = final.callPackage ./pd-mapper.nix {inherit (final) qrtr;}; # i use a fork of pd-mapper because I changed the firmware path
+        compressFirmwareXz = lib.id; #this leaves all firmware uncompressed :) for pd-mapper
       })
     ];
   };
