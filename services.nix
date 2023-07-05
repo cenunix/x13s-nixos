@@ -1,16 +1,31 @@
 {
-  inputs,
-  outputs,
-  lib,
   config,
+  lib,
   pkgs,
   ...
-}:
-#Services for x13s battery-sound etc. functionality, relies on firmware
-{
+}: {
+  #GNOME DE
   services.xserver.enable = true;
   services.xserver.displayManager.gdm.enable = true;
   services.xserver.desktopManager.gnome.enable = true;
+  # Bluetooth and audio stuffs
+
+  hardware.bluetooth.enable = true;
+  hardware.pulseaudio.enable = false;
+  services = {
+    pipewire = {
+      enable = true;
+      alsa = {
+        enable = true;
+        support32Bit = true;
+      };
+      wireplumber.enable = true;
+      pulse.enable = true;
+      jack.enable = true;
+    };
+  };
+  #Services for x13s battery-sound etc. functionality, pd-mapper and qrtr relies on firmware
+
   systemd.services = {
     pd-mapper = {
       unitConfig = {
@@ -32,6 +47,7 @@
       };
       wantedBy = ["multi-user.target"];
     };
+    #bluetooth systemd service thanks to steev and nixos docs, public addr needs to be set every boot
     bluetooth = {
       serviceConfig = {
         ExecStartPre = [
