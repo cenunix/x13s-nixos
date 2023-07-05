@@ -1,20 +1,24 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
+  linux_x13s_pkg = {buildLinux, ...} @ args:
+    buildLinux (args
+      // rec {
+        version = "6.3.5";
+        modDirVersion = "6.3.5";
 
-let
+        src = pkgs.fetchurl {
+          url = "https://github.com/steev/linux/archive/refs/heads/lenovo-x13s-linux-6.3.y.tar.gz";
+          sha256 = "sha256-eBVysWw9ktMz7lR9pqqkgUqdHC0QgKC24tK/9INsPmo=";
+        };
+        kernelPatches = [];
 
-  linux_x13s_pkg = { buildLinux, ... } @ args:
-    buildLinux (args // rec {
-      version = "6.3.5";
-      modDirVersion = "6.3.5";
-
-      src = pkgs.fetchurl {
-        url = "https://github.com/steev/linux/archive/refs/heads/lenovo-x13s-linux-6.3.y.tar.gz";
-        sha256 = "sha256-eBVysWw9ktMz7lR9pqqkgUqdHC0QgKC24tK/9INsPmo=";
-      };
-      kernelPatches = [];
-
-      extraMeta.branch = "lenovo-x13s-linux-6.3.y";
-    } // (args.argsOverride or { }));
+        extraMeta.branch = "lenovo-x13s-linux-6.3.y";
+      }
+      // (args.argsOverride or {}));
 
   linux_x13s = pkgs.callPackage linux_x13s_pkg {
     defconfig = "laptop_defconfig";
@@ -22,27 +26,27 @@ let
 
   linuxPackages_x13s = pkgs.linuxPackagesFor linux_x13s;
   dtbname = "sc8280xp-lenovo-thinkpad-x13s.dtb";
-
 in {
-  
-  imports = [ ./hardware-configuration.nix ];
+  imports = [
+    ./hardware-configuration.nix
+    ./services.nix
+  ];
 
   boot = {
     loader.grub.enable = true;
     loader.grub.efiSupport = true;
     #loader.grub.efiInstallAsRemovable = true;
     loader.grub.device = "nodev";
-    loader.grub.configurationLimit = 5; 
+    loader.grub.configurationLimit = 5;
     loader.efi.canTouchEfiVariables = true;
     loader.efi.efiSysMountPoint = "/boot/efi";
-
 
     kernelPackages = linuxPackages_x13s;
     kernelParams = [
       "efi=noruntime"
       "clk_ignore_unused"
       "pd_ignore_unused"
-      "root=PARTUUID=255a1f07-fa27-a641-b89f-ce4422318480"  
+      "root=PARTUUID=255a1f07-fa27-a641-b89f-ce4422318480"
       #"dtb='${config.boot.kernelPackages.kernel}/dtbs/qcom/${dtbname}"
     ];
     initrd = {
@@ -65,50 +69,58 @@ in {
       ];
     };
   };
-  hardware.firmware = [ (pkgs.callPackage ./x13s-firmware.nix{}) ]; 
+
+  hardware.firmware = [(pkgs.callPackage ./x13s-firmware.nix {})];
+
+  #Feel free to change to desired username passwd etc.
+
   users.users.cenunix = {
     isNormalUser = true;
     initialPassword = "changeme";
     home = "/home/cenunix";
-    extraGroups = [ "wheel" "networkManager"];
+    extraGroups = ["wheel" "networkManager"];
   };
-  networking.networkmanager.enable = true;
-  nixpkgs.config.allowUnfree = true;
-  networking.hostName = "nixos-x13s";
-  services.xserver.enable = true;
-  services.xserver.displayManager.gdm.enable = true;
-  services.xserver.desktopManager.gnome.enable = true;
 
-  nixpkgs.overlays = [(  final: prev: {
+  networking.networkmanager.enable = true;
+  networking.hostName = "nixos-x13s";
+
+  nixpkgs = {
+    config = {
+      allowUnfree = true;
+    };
+    overlays = [
+      (final: prev: {
         qrtr = prev.callPackage ./qrtr.nix {};
-        pd-mapper = final.callPackage ./pd-mapper.nix {inherit (final) qrtr; };
-      })];
+        pd-mapper = final.callPackage ./pd-mapper.nix {inherit (final) qrtr;};
+      })
+    ];
+  };
+
+  #GNOME for default DE, see in services.nix
+
   environment.systemPackages = with pkgs; [
-    libqrtr-glib
-    
     (callPackage ./pkgs/x13s-firmware.nix {})
     (callPackage ./pkgs/qrtr.nix {})
     (callPackage ./pkgs/pd-mapper.nix {})
-    (callPackage ./pkgs/alsa-ucm-conf-x13s.nix {})
+    alsa-ucm-conf
+    alsa-utils
     neovim
-    nano
     networkmanagerapplet
     git
     firefox
-    armcord
+    nheko
+    webcord
     gh
-    alsa-utils
     neofetch
     (vscode-with-extensions.override {
-    vscodeExtensions = with vscode-extensions; [
-      bbenoist.nix
-    ];
+      vscodeExtensions = with vscode-extensions; [
+        bbenoist.nix
+      ];
     })
   ];
-  systemd.packages = [
-    pkgs.qrtr
-    pkgs.pd-mapper
-  ];
+
+  #bluetooth and sound stuffs
+
   hardware.bluetooth.enable = true;
   hardware.pulseaudio.enable = false;
   services = {
