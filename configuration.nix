@@ -30,6 +30,7 @@
       (final: prev: {
         qrtr = prev.callPackage ./qrtr.nix {};
         pd-mapper = final.callPackage ./pd-mapper.nix {inherit (final) qrtr;};
+        compressFirmwareXz = lib.id;
       })
     ];
   };
