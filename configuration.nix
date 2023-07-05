@@ -40,7 +40,7 @@
 
   environment.systemPackages = with pkgs; [
     (callPackage ./pkgs/qrtr.nix {})
-    (callPackage ./pkgs/pd-mapper.nix {}) #required for battery and sound, hacky workaround because I suck, check ./pkgs/pd-mapper.nix and see my repo
+    (callPackage ./pkgs/pd-mapper.nix {}) #required for battery and sound, forked pd-mapper and changed path of firmware, leave firmware uncompressed using overlay.
     alsa-ucm-conf #>1.2.9 required for audio on x13s
     alsa-utils
     neovim
